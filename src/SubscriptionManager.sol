@@ -30,6 +30,18 @@ contract SubscriptionManager {
         uint256 interval
     );
 
+    event SubscriptionActivated(uint256 indexed subscriptionId);
+    event SubscriptionPaused(uint256 indexed subscriptionId);
+    event SubscriptionCancelled(uint256 indexed subscriptionId);
+
+    modifier onlyOwner(uint256 subscriptionId) {
+        require(
+            subscriptions[subscriptionId].owner == msg.sender,
+            "Not subscription owner"
+        );
+        _;
+    }
+
     function createSubscription(
         address recipient,
         uint256 amount,
@@ -59,5 +71,46 @@ contract SubscriptionManager {
         );
 
         return subscriptionId;
+    }
+
+    function activateSubscription(uint256 subscriptionId)
+        external
+        onlyOwner(subscriptionId)
+    {
+        Subscription storage sub = subscriptions[subscriptionId];
+        require(
+            sub.status == SubscriptionStatus.Created ||
+                sub.status == SubscriptionStatus.Paused,
+            "Cannot activate"
+        );
+
+        sub.status = SubscriptionStatus.Active;
+        emit SubscriptionActivated(subscriptionId);
+    }
+
+    function pauseSubscription(uint256 subscriptionId)
+        external
+        onlyOwner(subscriptionId)
+    {
+        Subscription storage sub = subscriptions[subscriptionId];
+        require(sub.status == SubscriptionStatus.Active, "Not active");
+
+        sub.status = SubscriptionStatus.Paused;
+        emit SubscriptionPaused(subscriptionId);
+    }
+
+    function cancelSubscription(uint256 subscriptionId)
+        external
+        onlyOwner(subscriptionId)
+    {
+        Subscription storage sub = subscriptions[subscriptionId];
+        require(
+            sub.status != SubscriptionStatus.Cancelled &&
+                sub.status != SubscriptionStatus.Executed,
+            "Already finalized"
+        );
+
+        sub.status = SubscriptionStatus.Cancelled;
+        emit SubscriptionCancelled(subscriptionId);
     }
 }
