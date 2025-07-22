@@ -1,6 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
+interface IERC20 {
+    function transferFrom(
+        address from,
+        address to,
+        uint256 amount
+    ) external returns (bool);
+}
+
 contract SubscriptionManager {
     enum SubscriptionStatus {
         Created,
@@ -22,6 +30,8 @@ contract SubscriptionManager {
     mapping(uint256 => Subscription) public subscriptions;
     uint256 public subscriptionCount;
 
+    IERC20 public immutable usdc;
+
     event SubscriptionCreated(
         uint256 indexed subscriptionId,
         address indexed owner,
@@ -33,6 +43,16 @@ contract SubscriptionManager {
     event SubscriptionActivated(uint256 indexed subscriptionId);
     event SubscriptionPaused(uint256 indexed subscriptionId);
     event SubscriptionCancelled(uint256 indexed subscriptionId);
+    event SubscriptionCharged(
+        uint256 indexed subscriptionId,
+        uint256 amount,
+        uint256 nextChargeTime
+    );
+
+    constructor(address _usdc) {
+        require(_usdc != address(0), "Invalid USDC address");
+        usdc = IERC20(_usdc);
+    }
 
     modifier onlyOwner(uint256 subscriptionId) {
         require(
@@ -112,5 +132,29 @@ contract SubscriptionManager {
 
         sub.status = SubscriptionStatus.Cancelled;
         emit SubscriptionCancelled(subscriptionId);
+    }
+
+    function executeSubscription(uint256 subscriptionId) external {
+        Subscription storage sub = subscriptions[subscriptionId];
+
+        require(sub.status == SubscriptionStatus.Active, "Not active");
+        require(
+            block.timestamp >= sub.nextChargeTime,
+            "Too early to charge"
+        );
+
+        require(
+            usdc.transferFrom(sub.owner, sub.recipient, sub.amount),
+            "Transfer failed"
+        );
+
+        sub.nextChargeTime = block.timestamp + sub.interval;
+        sub.status = SubscriptionStatus.Executed;
+
+        emit SubscriptionCharged(
+            subscriptionId,
+            sub.amount,
+            sub.nextChargeTime
+        );
     }
 }
