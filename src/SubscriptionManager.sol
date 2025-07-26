@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
+import "./AccessControl.sol";
+
 interface IERC20 {
     function transferFrom(
         address from,
@@ -9,7 +11,7 @@ interface IERC20 {
     ) external returns (bool);
 }
 
-contract SubscriptionManager {
+contract SubscriptionManager is AccessControl {
     enum SubscriptionStatus {
         Created,
         Active,
@@ -52,6 +54,8 @@ contract SubscriptionManager {
     constructor(address _usdc) {
         require(_usdc != address(0), "Invalid USDC address");
         usdc = IERC20(_usdc);
+        _grantRole(ADMIN_ROLE, msg.sender);
+        _grantRole(EXECUTOR_ROLE, msg.sender);
     }
 
     modifier onlyOwner(uint256 subscriptionId) {
@@ -134,7 +138,10 @@ contract SubscriptionManager {
         emit SubscriptionCancelled(subscriptionId);
     }
 
-    function executeSubscription(uint256 subscriptionId) external {
+    function executeSubscription(uint256 subscriptionId)
+        external
+        onlyRole(EXECUTOR_ROLE)
+    {
         Subscription storage sub = subscriptions[subscriptionId];
 
         require(sub.status == SubscriptionStatus.Active, "Not active");
