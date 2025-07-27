@@ -5,5 +5,4 @@ node_modules/
 .DS_Store
 broadcast/
 lcov.info
-
 lib/
