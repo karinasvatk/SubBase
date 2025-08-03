@@ -98,4 +98,75 @@ contract SubscriptionManagerTest is Test {
             uint256(SubscriptionManagerUpgradeable.SubscriptionStatus.Active)
         );
     }
+
+    function testPauseSubscription() public {
+        vm.prank(subscriber);
+        uint256 subId = manager.createSubscription(recipient, 100e6, 30 days);
+
+        vm.prank(subscriber);
+        manager.activateSubscription(subId);
+
+        vm.prank(subscriber);
+        manager.pauseSubscription(subId);
+
+        (, , , , , SubscriptionManagerUpgradeable.SubscriptionStatus status) = manager
+            .subscriptions(subId);
+
+        assertEq(
+            uint256(status),
+            uint256(SubscriptionManagerUpgradeable.SubscriptionStatus.Paused)
+        );
+    }
+
+    function testCancelSubscription() public {
+        vm.prank(subscriber);
+        uint256 subId = manager.createSubscription(recipient, 100e6, 30 days);
+
+        vm.prank(subscriber);
+        manager.cancelSubscription(subId);
+
+        (, , , , , SubscriptionManagerUpgradeable.SubscriptionStatus status) = manager
+            .subscriptions(subId);
+
+        assertEq(
+            uint256(status),
+            uint256(SubscriptionManagerUpgradeable.SubscriptionStatus.Cancelled)
+        );
+    }
+
+    function testExecuteSubscription() public {
+        vm.prank(subscriber);
+        uint256 subId = manager.createSubscription(recipient, 100e6, 30 days);
+
+        vm.prank(subscriber);
+        manager.activateSubscription(subId);
+
+        vm.warp(block.timestamp + 30 days);
+
+        manager.executeSubscription(subId);
+
+        assertEq(usdc.balanceOf(recipient), 100e6);
+        assertEq(usdc.balanceOf(subscriber), 900e6);
+    }
+
+    function testCannotExecuteInactiveSubscription() public {
+        vm.prank(subscriber);
+        uint256 subId = manager.createSubscription(recipient, 100e6, 30 days);
+
+        vm.warp(block.timestamp + 30 days);
+
+        vm.expectRevert("Not active");
+        manager.executeSubscription(subId);
+    }
+
+    function testCannotExecuteTooEarly() public {
+        vm.prank(subscriber);
+        uint256 subId = manager.createSubscription(recipient, 100e6, 30 days);
+
+        vm.prank(subscriber);
+        manager.activateSubscription(subId);
+
+        vm.expectRevert("Too early to charge");
+        manager.executeSubscription(subId);
+    }
 }
