@@ -169,7 +169,6 @@ contract SubscriptionManagerUpgradeable is
         );
 
         sub.nextChargeTime = block.timestamp + sub.interval;
-        sub.status = SubscriptionStatus.Executed;
 
         emit SubscriptionCharged(
             subscriptionId,
