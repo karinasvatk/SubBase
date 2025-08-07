@@ -176,4 +176,38 @@ contract SubscriptionManagerUpgradeable is
             sub.nextChargeTime
         );
     }
+
+    function getSubscription(uint256 subscriptionId)
+        external
+        view
+        returns (
+            address owner,
+            address recipient,
+            uint256 amount,
+            uint256 interval,
+            uint256 nextChargeTime,
+            SubscriptionStatus status
+        )
+    {
+        Subscription storage sub = subscriptions[subscriptionId];
+        return (
+            sub.owner,
+            sub.recipient,
+            sub.amount,
+            sub.interval,
+            sub.nextChargeTime,
+            sub.status
+        );
+    }
+
+    function isSubscriptionDue(uint256 subscriptionId)
+        external
+        view
+        returns (bool)
+    {
+        Subscription storage sub = subscriptions[subscriptionId];
+        return
+            sub.status == SubscriptionStatus.Active &&
+            block.timestamp >= sub.nextChargeTime;
+    }
 }
