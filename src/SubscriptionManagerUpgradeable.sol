@@ -210,4 +210,28 @@ contract SubscriptionManagerUpgradeable is
             sub.status == SubscriptionStatus.Active &&
             block.timestamp >= sub.nextChargeTime;
     }
+
+    function batchExecuteSubscriptions(uint256[] calldata subscriptionIds)
+        external
+        onlyRole(EXECUTOR_ROLE)
+    {
+        for (uint256 i = 0; i < subscriptionIds.length; i++) {
+            uint256 subId = subscriptionIds[i];
+            Subscription storage sub = subscriptions[subId];
+
+            if (
+                sub.status == SubscriptionStatus.Active &&
+                block.timestamp >= sub.nextChargeTime
+            ) {
+                if (usdc.transferFrom(sub.owner, sub.recipient, sub.amount)) {
+                    sub.nextChargeTime = block.timestamp + sub.interval;
+                    emit SubscriptionCharged(
+                        subId,
+                        sub.amount,
+                        sub.nextChargeTime
+                    );
+                }
+            }
+        }
+    }
 }
