@@ -18,6 +18,17 @@ contract SubscriptionManagerUpgradeable is
     UUPSUpgradeable,
     AccessControl
 {
+    error InvalidRecipient();
+    error InvalidAmount();
+    error InvalidInterval();
+    error InvalidUSDCAddress();
+    error NotSubscriptionOwner();
+    error CannotActivate();
+    error NotActive();
+    error TooEarlyToCharge();
+    error TransferFailed();
+    error AlreadyFinalized();
+
     enum SubscriptionStatus {
         Created,
         Active,
@@ -58,7 +69,7 @@ contract SubscriptionManagerUpgradeable is
     );
 
     function initialize(address _usdc) public initializer {
-        require(_usdc != address(0), "Invalid USDC address");
+        if (_usdc == address(0)) revert InvalidUSDCAddress();
         __UUPSUpgradeable_init();
         usdc = IERC20(_usdc);
         _grantRole(ADMIN_ROLE, msg.sender);
@@ -72,10 +83,8 @@ contract SubscriptionManagerUpgradeable is
     {}
 
     modifier onlyOwner(uint256 subscriptionId) {
-        require(
-            subscriptions[subscriptionId].owner == msg.sender,
-            "Not subscription owner"
-        );
+        if (subscriptions[subscriptionId].owner != msg.sender)
+            revert NotSubscriptionOwner();
         _;
     }
 
@@ -84,9 +93,9 @@ contract SubscriptionManagerUpgradeable is
         uint256 amount,
         uint256 interval
     ) external returns (uint256) {
-        require(recipient != address(0), "Invalid recipient");
-        require(amount > 0, "Invalid amount");
-        require(interval > 0, "Invalid interval");
+        if (recipient == address(0)) revert InvalidRecipient();
+        if (amount == 0) revert InvalidAmount();
+        if (interval == 0) revert InvalidInterval();
 
         uint256 subscriptionId = subscriptionCount++;
 
