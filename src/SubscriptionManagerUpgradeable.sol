@@ -124,11 +124,10 @@ contract SubscriptionManagerUpgradeable is
         onlyOwner(subscriptionId)
     {
         Subscription storage sub = subscriptions[subscriptionId];
-        require(
-            sub.status == SubscriptionStatus.Created ||
-                sub.status == SubscriptionStatus.Paused,
-            "Cannot activate"
-        );
+        if (
+            sub.status != SubscriptionStatus.Created &&
+            sub.status != SubscriptionStatus.Paused
+        ) revert CannotActivate();
 
         sub.status = SubscriptionStatus.Active;
         emit SubscriptionActivated(subscriptionId);
@@ -139,7 +138,7 @@ contract SubscriptionManagerUpgradeable is
         onlyOwner(subscriptionId)
     {
         Subscription storage sub = subscriptions[subscriptionId];
-        require(sub.status == SubscriptionStatus.Active, "Not active");
+        if (sub.status != SubscriptionStatus.Active) revert NotActive();
 
         sub.status = SubscriptionStatus.Paused;
         emit SubscriptionPaused(subscriptionId);
@@ -150,11 +149,10 @@ contract SubscriptionManagerUpgradeable is
         onlyOwner(subscriptionId)
     {
         Subscription storage sub = subscriptions[subscriptionId];
-        require(
-            sub.status != SubscriptionStatus.Cancelled &&
-                sub.status != SubscriptionStatus.Executed,
-            "Already finalized"
-        );
+        if (
+            sub.status == SubscriptionStatus.Cancelled ||
+            sub.status == SubscriptionStatus.Executed
+        ) revert AlreadyFinalized();
 
         sub.status = SubscriptionStatus.Cancelled;
         emit SubscriptionCancelled(subscriptionId);
@@ -166,16 +164,11 @@ contract SubscriptionManagerUpgradeable is
     {
         Subscription storage sub = subscriptions[subscriptionId];
 
-        require(sub.status == SubscriptionStatus.Active, "Not active");
-        require(
-            block.timestamp >= sub.nextChargeTime,
-            "Too early to charge"
-        );
+        if (sub.status != SubscriptionStatus.Active) revert NotActive();
+        if (block.timestamp < sub.nextChargeTime) revert TooEarlyToCharge();
 
-        require(
-            usdc.transferFrom(sub.owner, sub.recipient, sub.amount),
-            "Transfer failed"
-        );
+        if (!usdc.transferFrom(sub.owner, sub.recipient, sub.amount))
+            revert TransferFailed();
 
         sub.nextChargeTime = block.timestamp + sub.interval;
 
