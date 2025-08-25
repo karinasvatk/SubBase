@@ -44,6 +44,7 @@ contract SubscriptionManagerUpgradeable is
         uint256 interval;
         uint256 nextChargeTime;
         SubscriptionStatus status;
+        string description;
     }
 
     mapping(uint256 => Subscription) public subscriptions;
@@ -56,7 +57,8 @@ contract SubscriptionManagerUpgradeable is
         address indexed owner,
         address indexed recipient,
         uint256 amount,
-        uint256 interval
+        uint256 interval,
+        string description
     );
 
     event SubscriptionActivated(uint256 indexed subscriptionId);
@@ -91,7 +93,8 @@ contract SubscriptionManagerUpgradeable is
     function createSubscription(
         address recipient,
         uint256 amount,
-        uint256 interval
+        uint256 interval,
+        string calldata description
     ) external returns (uint256) {
         if (recipient == address(0)) revert InvalidRecipient();
         if (amount == 0) revert InvalidAmount();
@@ -105,7 +108,8 @@ contract SubscriptionManagerUpgradeable is
             amount: amount,
             interval: interval,
             nextChargeTime: block.timestamp + interval,
-            status: SubscriptionStatus.Created
+            status: SubscriptionStatus.Created,
+            description: description
         });
 
         emit SubscriptionCreated(
@@ -113,7 +117,8 @@ contract SubscriptionManagerUpgradeable is
             msg.sender,
             recipient,
             amount,
-            interval
+            interval,
+            description
         );
 
         return subscriptionId;
