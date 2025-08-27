@@ -69,6 +69,11 @@ contract SubscriptionManagerUpgradeable is
         uint256 amount,
         uint256 nextChargeTime
     );
+    event SubscriptionUpdated(
+        uint256 indexed subscriptionId,
+        uint256 newAmount,
+        uint256 newInterval
+    );
 
     function initialize(address _usdc) public initializer {
         if (_usdc == address(0)) revert InvalidUSDCAddress();
@@ -161,6 +166,23 @@ contract SubscriptionManagerUpgradeable is
 
         sub.status = SubscriptionStatus.Cancelled;
         emit SubscriptionCancelled(subscriptionId);
+    }
+
+    function updateSubscription(
+        uint256 subscriptionId,
+        uint256 newAmount,
+        uint256 newInterval
+    ) external onlyOwner(subscriptionId) {
+        if (newAmount == 0) revert InvalidAmount();
+        if (newInterval == 0) revert InvalidInterval();
+
+        Subscription storage sub = subscriptions[subscriptionId];
+        if (sub.status == SubscriptionStatus.Active) revert NotActive();
+
+        sub.amount = newAmount;
+        sub.interval = newInterval;
+
+        emit SubscriptionUpdated(subscriptionId, newAmount, newInterval);
     }
 
     function executeSubscription(uint256 subscriptionId)
