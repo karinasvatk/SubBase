@@ -13,6 +13,9 @@ interface IERC20 {
     ) external returns (bool);
 }
 
+/// @title Subscription Manager Upgradeable
+/// @notice Manages recurring USDC subscriptions on Base network
+/// @dev Implements UUPS upgradeable pattern with role-based access control
 contract SubscriptionManagerUpgradeable is
     Initializable,
     UUPSUpgradeable,
@@ -75,6 +78,8 @@ contract SubscriptionManagerUpgradeable is
         uint256 newInterval
     );
 
+    /// @notice Initializes the contract with USDC address
+    /// @param _usdc Address of the USDC token contract
     function initialize(address _usdc) public initializer {
         if (_usdc == address(0)) revert InvalidUSDCAddress();
         __UUPSUpgradeable_init();
@@ -95,6 +100,12 @@ contract SubscriptionManagerUpgradeable is
         _;
     }
 
+    /// @notice Creates a new subscription
+    /// @param recipient Address to receive payments
+    /// @param amount Amount in USDC to charge per interval
+    /// @param interval Time between charges in seconds
+    /// @param description Human-readable description of subscription
+    /// @return subscriptionId The ID of the created subscription
     function createSubscription(
         address recipient,
         uint256 amount,
@@ -185,6 +196,9 @@ contract SubscriptionManagerUpgradeable is
         emit SubscriptionUpdated(subscriptionId, newAmount, newInterval);
     }
 
+    /// @notice Executes a subscription payment
+    /// @param subscriptionId ID of the subscription to execute
+    /// @dev Only callable by addresses with EXECUTOR_ROLE
     function executeSubscription(uint256 subscriptionId)
         external
         onlyRole(EXECUTOR_ROLE)
