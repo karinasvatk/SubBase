@@ -277,4 +277,58 @@ contract SubscriptionManagerUpgradeable is
             }
         }
     }
+
+    function getUserSubscriptions(address user)
+        external
+        view
+        returns (uint256[] memory)
+    {
+        uint256 count = 0;
+        for (uint256 i = 0; i < subscriptionCount; i++) {
+            if (subscriptions[i].owner == user) {
+                count++;
+            }
+        }
+
+        uint256[] memory userSubs = new uint256[](count);
+        uint256 index = 0;
+        for (uint256 i = 0; i < subscriptionCount; i++) {
+            if (subscriptions[i].owner == user) {
+                userSubs[index] = i;
+                index++;
+            }
+        }
+
+        return userSubs;
+    }
+
+    function getDueSubscriptions(uint256 limit)
+        external
+        view
+        returns (uint256[] memory)
+    {
+        uint256 count = 0;
+        for (uint256 i = 0; i < subscriptionCount && count < limit; i++) {
+            if (
+                subscriptions[i].status == SubscriptionStatus.Active &&
+                block.timestamp >= subscriptions[i].nextChargeTime
+            ) {
+                count++;
+            }
+        }
+
+        uint256[] memory dueSubs = new uint256[](count);
+        uint256 index = 0;
+        for (uint256 i = 0; i < subscriptionCount && index < count; i++) {
+            if (
+                subscriptions[i].status == SubscriptionStatus.Active &&
+                block.timestamp >= subscriptions[i].nextChargeTime
+            ) {
+                dueSubs[index] = i;
+                index++;
+            }
+        }
+
+        return dueSubs;
+    }
 }
