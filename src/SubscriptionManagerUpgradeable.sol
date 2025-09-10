@@ -3,6 +3,7 @@ pragma solidity ^0.8.28;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 import "./AccessControl.sol";
 
 interface IERC20 {
@@ -19,6 +20,7 @@ interface IERC20 {
 contract SubscriptionManagerUpgradeable is
     Initializable,
     UUPSUpgradeable,
+    ReentrancyGuardUpgradeable,
     AccessControl
 {
     error InvalidRecipient();
@@ -83,6 +85,7 @@ contract SubscriptionManagerUpgradeable is
     function initialize(address _usdc) public initializer {
         if (_usdc == address(0)) revert InvalidUSDCAddress();
         __UUPSUpgradeable_init();
+        __ReentrancyGuard_init();
         usdc = IERC20(_usdc);
         _grantRole(ADMIN_ROLE, msg.sender);
         _grantRole(EXECUTOR_ROLE, msg.sender);
@@ -201,6 +204,7 @@ contract SubscriptionManagerUpgradeable is
     /// @dev Only callable by addresses with EXECUTOR_ROLE
     function executeSubscription(uint256 subscriptionId)
         external
+        nonReentrant
         onlyRole(EXECUTOR_ROLE)
     {
         Subscription storage sub = subscriptions[subscriptionId];
