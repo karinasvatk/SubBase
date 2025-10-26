@@ -1,0 +1,18 @@
+coverage:
+  status:
+    project:
+      default:
+        target: 80%
+        threshold: 5%
+    patch:
+      default:
+        target: 80%
+
+ignore:
+  - "test/**/*"
+  - "script/**/*"
+  - "src/mocks/**/*"
+
+comment:
+  layout: "reach, diff, flags, files"
+  behavior: default
