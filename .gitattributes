@@ -1,0 +1,16 @@
+*.sol linguist-language=Solidity
+*.toml linguist-language=TOML
+
+# Normalize line endings
+* text=auto eol=lf
+*.sol text eol=lf
+*.toml text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.gif binary
