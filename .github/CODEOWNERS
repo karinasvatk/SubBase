@@ -1,0 +1,12 @@
+# Global owners
+* @karinasvatk
+
+# Smart contracts
+/src/**/*.sol @karinasvatk
+/test/**/*.sol @karinasvatk
+
+# Scripts
+/script/**/*.sol @karinasvatk
+
+# CI/CD
+/.github/** @karinasvatk
