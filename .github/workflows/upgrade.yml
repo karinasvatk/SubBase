@@ -1,22 +1,26 @@
-name: Deploy to Base
+name: Upgrade Contract
 
 on:
   workflow_dispatch:
     inputs:
       network:
-        description: 'Network to deploy to'
+        description: 'Network to upgrade on'
         required: true
         type: choice
         options:
           - base-sepolia
           - base-mainnet
+      proxy_address:
+        description: 'Proxy contract address'
+        required: true
+        type: string
 
 permissions:
   contents: read
   actions: read
 
 jobs:
-  deploy:
+  upgrade:
     runs-on: ubuntu-latest
     environment: ${{ github.event.inputs.network }}
     steps:
@@ -27,16 +31,16 @@ jobs:
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
 
-      - name: Deploy to Base
+      - name: Upgrade Contract
         env:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
-          USDC_ADDRESS: ${{ secrets.USDC_ADDRESS }}
           BASE_SEPOLIA_RPC: ${{ secrets.BASE_SEPOLIA_RPC }}
           BASE_MAINNET_RPC: ${{ secrets.BASE_MAINNET_RPC }}
           BASESCAN_API_KEY: ${{ secrets.BASESCAN_API_KEY }}
+          PROXY_ADDRESS: ${{ github.event.inputs.proxy_address }}
         run: |
           if [ "${{ github.event.inputs.network }}" == "base-sepolia" ]; then
-            forge script script/Deploy.s.sol:DeployScript --rpc-url $BASE_SEPOLIA_RPC --broadcast --verify
+            forge script script/Upgrade.s.sol:UpgradeScript --rpc-url $BASE_SEPOLIA_RPC --broadcast --verify
           else
-            forge script script/Deploy.s.sol:DeployScript --rpc-url $BASE_MAINNET_RPC --broadcast --verify
+            forge script script/Upgrade.s.sol:UpgradeScript --rpc-url $BASE_MAINNET_RPC --broadcast --verify
           fi
