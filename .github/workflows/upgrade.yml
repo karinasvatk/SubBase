@@ -40,7 +40,18 @@ jobs:
           PROXY_ADDRESS: ${{ github.event.inputs.proxy_address }}
         run: |
           if [ "${{ github.event.inputs.network }}" == "base-sepolia" ]; then
-            forge script script/Upgrade.s.sol:UpgradeScript --rpc-url $BASE_SEPOLIA_RPC --broadcast --verify
+            RPC_URL="${BASE_SEPOLIA_RPC}"
+            NETWORK="base-sepolia"
           else
-            forge script script/Upgrade.s.sol:UpgradeScript --rpc-url $BASE_MAINNET_RPC --broadcast --verify
+            RPC_URL="${BASE_MAINNET_RPC}"
+            NETWORK="base-mainnet"
           fi
+
+          echo "Upgrading contract on ${NETWORK}..."
+          echo "Proxy address: ${PROXY_ADDRESS}"
+          forge script script/Upgrade.s.sol:UpgradeScript \
+            --rpc-url "${RPC_URL}" \
+            --broadcast \
+            --verify \
+            --etherscan-api-key "${BASESCAN_API_KEY}" \
+            -vvv

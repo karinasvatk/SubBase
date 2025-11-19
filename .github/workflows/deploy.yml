@@ -36,7 +36,17 @@ jobs:
           BASESCAN_API_KEY: ${{ secrets.BASESCAN_API_KEY }}
         run: |
           if [ "${{ github.event.inputs.network }}" == "base-sepolia" ]; then
-            forge script script/Deploy.s.sol:DeployScript --rpc-url $BASE_SEPOLIA_RPC --broadcast --verify
+            RPC_URL="${BASE_SEPOLIA_RPC}"
+            NETWORK="base-sepolia"
           else
-            forge script script/Deploy.s.sol:DeployScript --rpc-url $BASE_MAINNET_RPC --broadcast --verify
+            RPC_URL="${BASE_MAINNET_RPC}"
+            NETWORK="base-mainnet"
           fi
+
+          echo "Deploying to ${NETWORK}..."
+          forge script script/Deploy.s.sol:DeployScript \
+            --rpc-url "${RPC_URL}" \
+            --broadcast \
+            --verify \
+            --etherscan-api-key "${BASESCAN_API_KEY}" \
+            -vvv
