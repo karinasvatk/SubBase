@@ -13,10 +13,13 @@ Before deploying, you need to configure the following secrets in your GitHub rep
 | Secret Name | Description | Example |
 |-------------|-------------|---------|
 | `PRIVATE_KEY` | Deployer wallet private key (without 0x prefix) | `ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80` |
-| `USDC_ADDRESS` | USDC token contract address | Base Sepolia: `0x036CbD53842c5426634e7929541eC2318f3dCF7e`<br>Base Mainnet: `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913` |
 | `BASE_SEPOLIA_RPC` | Base Sepolia RPC URL | `https://sepolia.base.org` or Alchemy/Infura endpoint |
 | `BASE_MAINNET_RPC` | Base Mainnet RPC URL | `https://mainnet.base.org` or Alchemy/Infura endpoint |
-| `BASESCAN_API_KEY` | Basescan API key for contract verification | Get from [basescan.org/myapikey](https://basescan.org/myapikey) |
+| `BASESCAN_API_KEY` | Basescan API key for contract verification (optional) | Get from [basescan.org/myapikey](https://basescan.org/myapikey) |
+
+**Note:** USDC addresses are hardcoded in the workflow:
+- Base Sepolia: `0x036CbD53842c5426634e7929541eC2318f3dCF7e`
+- Base Mainnet: `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`
 
 ### Example RPC URLs
 

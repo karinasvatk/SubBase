@@ -33,10 +33,6 @@ jobs:
             echo "Error: PRIVATE_KEY secret is not set"
             exit 1
           fi
-          if [ -z "${{ secrets.USDC_ADDRESS }}" ]; then
-            echo "Error: USDC_ADDRESS secret is not set"
-            exit 1
-          fi
           if [ "${{ github.event.inputs.network }}" == "base-sepolia" ] && [ -z "${{ secrets.BASE_SEPOLIA_RPC }}" ]; then
             echo "Error: BASE_SEPOLIA_RPC secret is not set"
             exit 1
@@ -50,7 +46,6 @@ jobs:
       - name: Deploy to Base
         env:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
-          USDC_ADDRESS: ${{ secrets.USDC_ADDRESS }}
           BASE_SEPOLIA_RPC: ${{ secrets.BASE_SEPOLIA_RPC }}
           BASE_MAINNET_RPC: ${{ secrets.BASE_MAINNET_RPC }}
           BASESCAN_API_KEY: ${{ secrets.BASESCAN_API_KEY }}
@@ -58,13 +53,17 @@ jobs:
           if [ "${{ github.event.inputs.network }}" == "base-sepolia" ]; then
             RPC_URL="${BASE_SEPOLIA_RPC}"
             NETWORK="base-sepolia"
+            USDC_ADDRESS="0x036CbD53842c5426634e7929541eC2318f3dCF7e"
           else
             RPC_URL="${BASE_MAINNET_RPC}"
             NETWORK="base-mainnet"
+            USDC_ADDRESS="0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
           fi
 
           echo "Deploying to ${NETWORK}..."
-          echo "RPC URL is set: $([ -n "${RPC_URL}" ] && echo "yes" || echo "no")"
+          echo "USDC Address: ${USDC_ADDRESS}"
+
+          export USDC_ADDRESS="${USDC_ADDRESS}"
 
           forge script script/Deploy.s.sol:DeployScript \
             --rpc-url "${RPC_URL}" \
