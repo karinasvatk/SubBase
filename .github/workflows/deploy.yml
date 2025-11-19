@@ -27,6 +27,26 @@ jobs:
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
 
+      - name: Validate Environment Variables
+        run: |
+          if [ -z "${{ secrets.PRIVATE_KEY }}" ]; then
+            echo "Error: PRIVATE_KEY secret is not set"
+            exit 1
+          fi
+          if [ -z "${{ secrets.USDC_ADDRESS }}" ]; then
+            echo "Error: USDC_ADDRESS secret is not set"
+            exit 1
+          fi
+          if [ "${{ github.event.inputs.network }}" == "base-sepolia" ] && [ -z "${{ secrets.BASE_SEPOLIA_RPC }}" ]; then
+            echo "Error: BASE_SEPOLIA_RPC secret is not set"
+            exit 1
+          fi
+          if [ "${{ github.event.inputs.network }}" == "base-mainnet" ] && [ -z "${{ secrets.BASE_MAINNET_RPC }}" ]; then
+            echo "Error: BASE_MAINNET_RPC secret is not set"
+            exit 1
+          fi
+          echo "All required secrets are set"
+
       - name: Deploy to Base
         env:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
@@ -44,6 +64,8 @@ jobs:
           fi
 
           echo "Deploying to ${NETWORK}..."
+          echo "RPC URL is set: $([ -n "${RPC_URL}" ] && echo "yes" || echo "no")"
+
           forge script script/Deploy.s.sol:DeployScript \
             --rpc-url "${RPC_URL}" \
             --broadcast \
