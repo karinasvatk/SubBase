@@ -27,6 +27,9 @@ jobs:
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
 
+      - name: Install Dependencies
+        run: forge install --no-commit
+
       - name: Validate Environment Variables
         run: |
           if [ -z "${{ secrets.PRIVATE_KEY }}" ]; then
