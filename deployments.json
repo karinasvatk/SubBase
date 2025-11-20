@@ -1,0 +1,40 @@
+{
+  "base-sepolia": {
+    "chainId": 84532,
+    "contracts": {
+      "SubscriptionManagerUpgradeable": {
+        "implementation": "0x0085F8194eDD93FAD90e9FE17c7e4AB8aB2D0257",
+        "proxy": "0xED57419dbF746e4729d2be492B10875871Bc15D7"
+      }
+    },
+    "deployment": {
+      "timestamp": "2025-11-20T17:46:04Z",
+      "deployer": "karinasvatk",
+      "verified": true
+    },
+    "links": {
+      "implementation": "https://sepolia.basescan.org/address/0x0085F8194eDD93FAD90e9FE17c7e4AB8aB2D0257",
+      "proxy": "https://sepolia.basescan.org/address/0xED57419dbF746e4729d2be492B10875871Bc15D7",
+      "explorer": "https://sepolia.basescan.org"
+    }
+  },
+  "base-mainnet": {
+    "chainId": 8453,
+    "contracts": {
+      "SubscriptionManagerUpgradeable": {
+        "implementation": null,
+        "proxy": null
+      }
+    },
+    "deployment": {
+      "timestamp": null,
+      "deployer": null,
+      "verified": false
+    },
+    "links": {
+      "implementation": null,
+      "proxy": null,
+      "explorer": "https://basescan.org"
+    }
+  }
+}
