@@ -17,7 +17,7 @@ jobs:
         uses: foundry-rs/foundry-toolchain@v1
 
       - name: Install Dependencies
-        run: forge install
+        run: git submodule update --init --recursive
 
       - name: Run tests
         run: forge test -vvv
