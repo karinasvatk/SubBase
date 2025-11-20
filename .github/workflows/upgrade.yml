@@ -32,7 +32,7 @@ jobs:
         uses: foundry-rs/foundry-toolchain@v1
 
       - name: Install Dependencies
-        run: forge install --no-commit
+        run: forge install
 
       - name: Upgrade Contract
         env:
