@@ -1,4 +1,4 @@
-name: Upgrade Contract
+name: Upgrade SubBase v1
 
 on:
   workflow_dispatch:
@@ -34,7 +34,7 @@ jobs:
       - name: Install Dependencies
         run: git submodule update --init --recursive
 
-      - name: Upgrade Contract
+      - name: Upgrade SubBase v1
         env:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
           BASE_SEPOLIA_RPC: ${{ secrets.BASE_SEPOLIA_RPC }}
@@ -50,9 +50,10 @@ jobs:
             NETWORK="base-mainnet"
           fi
 
-          echo "Upgrading contract on ${NETWORK}..."
-          echo "Proxy address: ${PROXY_ADDRESS}"
-          forge script script/Upgrade.s.sol:UpgradeScript \
+          echo "Upgrading SubBase v1 on ${NETWORK}..."
+          echo "Proxy: ${PROXY_ADDRESS}"
+
+          forge script script/UpgradeV1.s.sol:UpgradeV1Script \
             --rpc-url "${RPC_URL}" \
             --broadcast \
             --verify \
