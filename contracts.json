@@ -7,8 +7,8 @@
   },
   "base-mainnet": {
     "SubBaseV1": {
-      "proxy": null,
-      "implementation": null
+      "proxy": "0xfa34E4c68c77D54dD8B694c8395953465129E3c9",
+      "implementation": "0x005DF73314a58773588a7ADbBcE18c6d87ca724E"
     }
   }
 }
