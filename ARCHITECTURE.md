@@ -12,8 +12,8 @@ SubBase is a modular, upgradeable subscription protocol built on Base using the 
                      ▼
 ┌─────────────────────────────────────────────────────┐
 │              UUPS Proxy (Upgradeable)               │
-│    Sepolia: 0x8B182755Ae296e8f222Ac4E677B7Cc63d... │
-│    Mainnet: 0xfa34E4c68c77D54dD8B694c8395953465... │
+│    Sepolia: 0x8B182755Ae296e8f222Ac4E677B7Cc63d...  │
+│    Mainnet: 0xfa34E4c68c77D54dD8B694c8395953465...  │ 
 └────────────────────┬────────────────────────────────┘
                      │
                      ▼
@@ -22,24 +22,24 @@ SubBase is a modular, upgradeable subscription protocol built on Base using the 
 │              (Implementation)                       │
 ├─────────────────────────────────────────────────────┤
 │                                                     │
-│  ┌──────────────┐        ┌──────────────┐          │
-│  │ PlanModule   │        │ Subscription │          │
-│  │              │        │   Module     │          │
-│  ├──────────────┤        ├──────────────┤          │
-│  │ createPlan() │        │ subscribe()  │          │
-│  │ getPlan()    │        │ cancel()     │          │
-│  └──────────────┘        │ getSubscr... │          │
-│                          │ getUserSub...│          │
-│                          └──────────────┘          │
+│  ┌──────────────┐        ┌──────────────┐           │
+│  │ PlanModule   │        │ Subscription │           │
+│  │              │        │   Module     │           │
+│  ├──────────────┤        ├──────────────┤           │
+│  │ createPlan() │        │ subscribe()  │           │
+│  │ getPlan()    │        │ cancel()     │           │
+│  └──────────────┘        │ getSubscr... │           │
+│                          │ getUserSub...│           │
+│                          └──────────────┘           │
 │                                                     │
-│  ┌─────────────────────────────────────────────┐   │
-│  │         SubBaseStorage                      │   │
-│  ├─────────────────────────────────────────────┤   │
-│  │ mapping(uint256 => Plan)                    │   │
-│  │ mapping(uint256 => Subscription)            │   │
-│  │ mapping(address => uint256[])               │   │
-│  │ uint256[44] __gap  (upgrade reserve)        │   │
-│  └─────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────┐    │
+│  │         SubBaseStorage                      │    │
+│  ├─────────────────────────────────────────────┤    │
+│  │ mapping(uint256 => Plan)                    │    │
+│  │ mapping(uint256 => Subscription)            │    │
+│  │ mapping(address => uint256[])               │    │
+│  │ uint256[44] __gap  (upgrade reserve)        │    │
+│  └─────────────────────────────────────────────┘    │
 │                                                     │
 └─────────────────────────────────────────────────────┘
                      │
