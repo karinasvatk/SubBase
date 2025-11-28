@@ -1,4 +1,4 @@
-name: Deploy to Base
+name: Deploy SubBase v1
 
 on:
   workflow_dispatch:
@@ -46,7 +46,7 @@ jobs:
           fi
           echo "All required secrets are set"
 
-      - name: Deploy to Base
+      - name: Deploy SubBase v1
         env:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
           BASE_SEPOLIA_RPC: ${{ secrets.BASE_SEPOLIA_RPC }}
@@ -63,12 +63,12 @@ jobs:
             USDC_ADDRESS="0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
           fi
 
-          echo "Deploying to ${NETWORK}..."
+          echo "Deploying SubBase v1 to ${NETWORK}..."
           echo "USDC Address: ${USDC_ADDRESS}"
 
           export USDC_ADDRESS="${USDC_ADDRESS}"
 
-          forge script script/Deploy.s.sol:DeployScript \
+          forge script script/DeployV1.s.sol:DeployV1Script \
             --rpc-url "${RPC_URL}" \
             --broadcast \
             --verify \

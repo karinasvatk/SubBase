@@ -2,20 +2,20 @@
 pragma solidity ^0.8.28;
 
 import "forge-std/Script.sol";
-import "../src/SubscriptionManagerUpgradeable.sol";
+import "../src/SubBaseV1.sol";
 import "openzeppelin-contracts/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
-contract DeployScript is Script {
+contract DeployV1Script is Script {
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address usdcAddress = vm.envAddress("USDC_ADDRESS");
 
         vm.startBroadcast(deployerPrivateKey);
 
-        SubscriptionManagerUpgradeable implementation = new SubscriptionManagerUpgradeable();
+        SubBaseV1 implementation = new SubBaseV1();
 
         bytes memory initData = abi.encodeWithSelector(
-            SubscriptionManagerUpgradeable.initialize.selector,
+            SubBaseV1.initialize.selector,
             usdcAddress
         );
 
@@ -24,8 +24,8 @@ contract DeployScript is Script {
             initData
         );
 
-        console.log("Implementation deployed at:", address(implementation));
-        console.log("Proxy deployed at:", address(proxy));
+        console.log("SubBaseV1 Implementation:", address(implementation));
+        console.log("SubBaseV1 Proxy:", address(proxy));
 
         vm.stopBroadcast();
     }

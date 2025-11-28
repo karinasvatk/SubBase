@@ -1,16 +1,14 @@
 {
   "name": "subbase",
   "version": "1.0.0",
-  "description": "Subscription management protocol on Base",
+  "description": "Modular subscription protocol on Base",
   "scripts": {
     "test": "forge test",
     "build": "forge build",
-    "deploy:sepolia": "forge script script/Deploy.s.sol --rpc-url $BASE_SEPOLIA_RPC --broadcast --verify",
-    "deploy:mainnet": "forge script script/Deploy.s.sol --rpc-url $BASE_MAINNET_RPC --broadcast --verify",
     "lint": "solhint 'src/**/*.sol'",
     "format": "forge fmt"
   },
-  "keywords": ["solidity", "ethereum", "base", "subscriptions", "foundry"],
+  "keywords": ["solidity", "base", "subscriptions", "uups", "foundry"],
   "author": "SubBase",
   "license": "MIT"
 }
