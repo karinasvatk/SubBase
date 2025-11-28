@@ -100,25 +100,6 @@ Subscription memory sub = subbase.getSubscription(subscriptionId);
 // Get all user subscriptions
 uint256[] memory userSubs = subbase.getUserSubscriptions(userAddress);
 ```
-
-## Development
-
-Built with Foundry for fast, reliable smart contract development.
-
-```bash
-# Run tests
-forge test
-
-# Build contracts
-forge build
-
-# Format code
-forge fmt
-
-# Gas report
-forge test --gas-report
-```
-
 ## Roadmap
 
 **v1 (Current)** - Minimal viable subscription protocol
