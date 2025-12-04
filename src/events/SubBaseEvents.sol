@@ -21,4 +21,40 @@ abstract contract SubBaseEvents {
         uint256 indexed subscriptionId,
         address indexed subscriber
     );
+
+    // V2 events
+    event ChargeSuccessful(
+        uint256 indexed subscriptionId,
+        uint256 amount,
+        uint256 nextBillingTime
+    );
+
+    event ChargeFailed(
+        uint256 indexed subscriptionId,
+        uint256 attempt,
+        string reason
+    );
+
+    event SubscriptionPastDue(
+        uint256 indexed subscriptionId,
+        uint256 gracePeriodEnd
+    );
+
+    event SubscriptionSuspended(
+        uint256 indexed subscriptionId
+    );
+
+    event SubscriptionReactivated(
+        uint256 indexed subscriptionId
+    );
+
+    event GracePeriodUpdated(
+        uint256 oldPeriod,
+        uint256 newPeriod
+    );
+
+    event MaxRetryAttemptsUpdated(
+        uint256 oldAttempts,
+        uint256 newAttempts
+    );
 }

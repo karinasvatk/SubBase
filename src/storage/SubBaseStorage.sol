@@ -13,5 +13,12 @@ abstract contract SubBaseStorage {
 
     address internal _usdc;
 
-    uint256[44] private __gap;
+    // V2 storage additions
+    mapping(uint256 => uint256) internal _failedAttempts;
+    mapping(uint256 => uint256) internal _lastChargeAttempt;
+    mapping(uint256 => uint256) internal _gracePeriodEnd;
+    uint256 internal _defaultGracePeriod;
+    uint256 internal _maxRetryAttempts;
+
+    uint256[39] private __gap;
 }

@@ -11,4 +11,13 @@ interface SubBaseErrors {
     error NotSubscriber();
     error AlreadyCancelled();
     error Unauthorized();
+
+    // V2 errors
+    error NotDueForCharge();
+    error SubscriptionNotActive();
+    error ChargeFailed();
+    error MaxRetryAttemptsReached();
+    error SubscriptionSuspended();
+    error InvalidGracePeriod();
+    error InvalidMaxRetryAttempts();
 }
