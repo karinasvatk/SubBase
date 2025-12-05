@@ -12,8 +12,6 @@ interface IERC20 {
 }
 
 abstract contract ChargeModule is SubBaseStorage, SubBaseEvents, SubBaseErrors {
-    modifier onlyOwner() virtual;
-
     /**
      * @notice Charge a subscription if due for billing
      * @param subscriptionId The ID of the subscription to charge
