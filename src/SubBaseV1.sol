@@ -16,7 +16,7 @@ contract SubBaseV1 is
 {
     address internal _owner;
 
-    modifier onlyOwner() {
+    modifier onlyOwner() virtual {
         if (msg.sender != _owner) revert Unauthorized();
         _;
     }

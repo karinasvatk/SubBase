@@ -198,7 +198,7 @@ abstract contract ChargeModule is SubBaseStorage, SubBaseEvents, SubBaseErrors {
         SubBaseTypes.Plan storage plan = _plans[sub.planId];
 
         if (sub.status != SubBaseTypes.SubscriptionStatus.Suspended) {
-            revert SubscriptionSuspended();
+            revert SubscriptionNotActive();
         }
 
         // Pay outstanding amount
