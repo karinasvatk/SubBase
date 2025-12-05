@@ -1,0 +1,137 @@
+name: Deploy SubBase
+
+on:
+  workflow_dispatch:
+    inputs:
+      network:
+        description: 'Network to deploy to'
+        required: true
+        type: choice
+        options:
+          - base-sepolia
+          - base-mainnet
+      version:
+        description: 'Version to deploy'
+        required: true
+        type: choice
+        options:
+          - v1
+          - v2
+          - both
+      grace_period:
+        description: 'Grace period in days (V2 only)'
+        required: false
+        default: '7'
+        type: string
+      max_retries:
+        description: 'Max retry attempts (V2 only)'
+        required: false
+        default: '3'
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.network }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Install Dependencies
+        run: git submodule update --init --recursive
+
+      - name: Validate Environment Variables
+        run: |
+          if [ -z "${{ secrets.PRIVATE_KEY }}" ]; then
+            echo "Error: PRIVATE_KEY secret is not set"
+            exit 1
+          fi
+          if [ "${{ github.event.inputs.network }}" == "base-sepolia" ] && [ -z "${{ secrets.BASE_SEPOLIA_RPC }}" ]; then
+            echo "Error: BASE_SEPOLIA_RPC secret is not set"
+            exit 1
+          fi
+          if [ "${{ github.event.inputs.network }}" == "base-mainnet" ] && [ -z "${{ secrets.BASE_MAINNET_RPC }}" ]; then
+            echo "Error: BASE_MAINNET_RPC secret is not set"
+            exit 1
+          fi
+          echo "All required secrets are set"
+
+      - name: Deploy SubBase
+        env:
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+          BASE_SEPOLIA_RPC: ${{ secrets.BASE_SEPOLIA_RPC }}
+          BASE_MAINNET_RPC: ${{ secrets.BASE_MAINNET_RPC }}
+          BASESCAN_API_KEY: ${{ secrets.BASESCAN_API_KEY }}
+        run: |
+          # Set network configuration
+          if [ "${{ github.event.inputs.network }}" == "base-sepolia" ]; then
+            RPC_URL="${BASE_SEPOLIA_RPC}"
+            NETWORK="base-sepolia"
+            USDC_ADDRESS="0x036CbD53842c5426634e7929541eC2318f3dCF7e"
+          else
+            RPC_URL="${BASE_MAINNET_RPC}"
+            NETWORK="base-mainnet"
+            USDC_ADDRESS="0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+          fi
+
+          export USDC_ADDRESS="${USDC_ADDRESS}"
+
+          # Convert days to seconds for grace period
+          GRACE_PERIOD_SECONDS=$((86400 * ${{ github.event.inputs.grace_period }}))
+          export GRACE_PERIOD="${GRACE_PERIOD_SECONDS}"
+          export MAX_RETRIES="${{ github.event.inputs.max_retries }}"
+
+          # Deploy based on version selection
+          if [ "${{ github.event.inputs.version }}" == "v1" ] || [ "${{ github.event.inputs.version }}" == "both" ]; then
+            echo "=========================================="
+            echo "Deploying SubBase V1 to ${NETWORK}..."
+            echo "USDC Address: ${USDC_ADDRESS}"
+            echo "=========================================="
+
+            forge script script/DeployV1.s.sol:DeployV1Script \
+              --rpc-url "${RPC_URL}" \
+              --broadcast \
+              --verify \
+              --etherscan-api-key "${BASESCAN_API_KEY}" \
+              -vvv
+          fi
+
+          if [ "${{ github.event.inputs.version }}" == "v2" ]; then
+            echo "=========================================="
+            echo "Deploying SubBase V2 to ${NETWORK}..."
+            echo "USDC Address: ${USDC_ADDRESS}"
+            echo "Grace Period: ${{ github.event.inputs.grace_period }} days (${GRACE_PERIOD_SECONDS} seconds)"
+            echo "Max Retries: ${{ github.event.inputs.max_retries }}"
+            echo "=========================================="
+
+            forge script script/DeployV1.s.sol:DeployV1Script \
+              --rpc-url "${RPC_URL}" \
+              --broadcast \
+              --verify \
+              --etherscan-api-key "${BASESCAN_API_KEY}" \
+              -vvv
+
+            echo ""
+            echo "V1 deployed, now upgrading to V2..."
+            echo ""
+
+            # Get proxy address from deployment (you'll need to extract this from logs)
+            # For now, it needs to be set manually or extracted from broadcast files
+            echo "Please use the Upgrade workflow to upgrade to V2"
+          fi
+
+          if [ "${{ github.event.inputs.version }}" == "both" ]; then
+            echo ""
+            echo "=========================================="
+            echo "V1 deployed successfully!"
+            echo "Use the Upgrade workflow to upgrade to V2"
+            echo "=========================================="
+          fi
