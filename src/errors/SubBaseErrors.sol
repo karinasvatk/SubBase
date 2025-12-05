@@ -15,9 +15,7 @@ interface SubBaseErrors {
     // V2 errors
     error NotDueForCharge();
     error SubscriptionNotActive();
-    error ChargeFailed();
     error MaxRetryAttemptsReached();
-    error SubscriptionSuspended();
     error InvalidGracePeriod();
     error InvalidMaxRetryAttempts();
 }

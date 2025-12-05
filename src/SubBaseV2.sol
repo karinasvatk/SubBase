@@ -11,6 +11,11 @@ import {AutomationModule} from "./modules/AutomationModule.sol";
  * @dev Adds ChargeModule and AutomationModule capabilities to V1
  */
 contract SubBaseV2 is SubBaseV1, AutomationModule {
+    modifier onlyOwner() override(SubBaseV1, ChargeModule) {
+        if (msg.sender != _owner) revert Unauthorized();
+        _;
+    }
+
     /**
      * @notice Initialize V2 with grace period and retry settings
      * @param gracePeriod Grace period in seconds for failed payments
