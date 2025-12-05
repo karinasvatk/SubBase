@@ -11,8 +11,12 @@ import {AutomationModule} from "./modules/AutomationModule.sol";
  * @dev Adds ChargeModule and AutomationModule capabilities to V1
  */
 contract SubBaseV2 is SubBaseV1, AutomationModule {
-    modifier onlyOwner() override {
+    function _onlyOwner() private view {
         if (msg.sender != _owner) revert Unauthorized();
+    }
+
+    modifier onlyOwner() override(SubBaseV1, ChargeModule) {
+        _onlyOwner();
         _;
     }
 
