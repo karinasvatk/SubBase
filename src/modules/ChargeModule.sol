@@ -12,7 +12,7 @@ interface IERC20 {
 }
 
 abstract contract ChargeModule is SubBaseStorage, SubBaseEvents, SubBaseErrors {
-    modifier onlyOwner() virtual;
+    function _checkOwner() internal view virtual;
 
     /**
      * @notice Charge a subscription if due for billing
@@ -221,7 +221,8 @@ abstract contract ChargeModule is SubBaseStorage, SubBaseEvents, SubBaseErrors {
      * @notice Set the default grace period for failed payments
      * @param period Grace period in seconds
      */
-    function setGracePeriod(uint256 period) external onlyOwner {
+    function setGracePeriod(uint256 period) external {
+        _checkOwner();
         if (period == 0) revert InvalidGracePeriod();
         uint256 oldPeriod = _defaultGracePeriod;
         _defaultGracePeriod = period;
@@ -232,7 +233,8 @@ abstract contract ChargeModule is SubBaseStorage, SubBaseEvents, SubBaseErrors {
      * @notice Set the maximum retry attempts for failed charges
      * @param attempts Maximum number of retry attempts
      */
-    function setMaxRetryAttempts(uint256 attempts) external onlyOwner {
+    function setMaxRetryAttempts(uint256 attempts) external {
+        _checkOwner();
         if (attempts == 0) revert InvalidMaxRetryAttempts();
         uint256 oldAttempts = _maxRetryAttempts;
         _maxRetryAttempts = attempts;
