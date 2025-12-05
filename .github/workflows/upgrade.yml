@@ -1,0 +1,117 @@
+name: Upgrade SubBase
+
+on:
+  workflow_dispatch:
+    inputs:
+      network:
+        description: 'Network to upgrade on'
+        required: true
+        type: choice
+        options:
+          - base-sepolia
+          - base-mainnet
+      proxy_address:
+        description: 'Proxy contract address'
+        required: true
+        type: string
+      target_version:
+        description: 'Target version to upgrade to'
+        required: true
+        type: choice
+        options:
+          - v2
+      grace_period:
+        description: 'Grace period in days (V2 only)'
+        required: false
+        default: '7'
+        type: string
+      max_retries:
+        description: 'Max retry attempts (V2 only)'
+        required: false
+        default: '3'
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  upgrade:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.network }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Install Dependencies
+        run: git submodule update --init --recursive
+
+      - name: Validate Environment Variables
+        run: |
+          if [ -z "${{ secrets.PRIVATE_KEY }}" ]; then
+            echo "Error: PRIVATE_KEY secret is not set"
+            exit 1
+          fi
+          if [ "${{ github.event.inputs.network }}" == "base-sepolia" ] && [ -z "${{ secrets.BASE_SEPOLIA_RPC }}" ]; then
+            echo "Error: BASE_SEPOLIA_RPC secret is not set"
+            exit 1
+          fi
+          if [ "${{ github.event.inputs.network }}" == "base-mainnet" ] && [ -z "${{ secrets.BASE_MAINNET_RPC }}" ]; then
+            echo "Error: BASE_MAINNET_RPC secret is not set"
+            exit 1
+          fi
+          echo "All required secrets are set"
+
+      - name: Upgrade SubBase
+        env:
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+          BASE_SEPOLIA_RPC: ${{ secrets.BASE_SEPOLIA_RPC }}
+          BASE_MAINNET_RPC: ${{ secrets.BASE_MAINNET_RPC }}
+          BASESCAN_API_KEY: ${{ secrets.BASESCAN_API_KEY }}
+          PROXY_ADDRESS: ${{ github.event.inputs.proxy_address }}
+        run: |
+          # Set network configuration
+          if [ "${{ github.event.inputs.network }}" == "base-sepolia" ]; then
+            RPC_URL="${BASE_SEPOLIA_RPC}"
+            NETWORK="base-sepolia"
+          else
+            RPC_URL="${BASE_MAINNET_RPC}"
+            NETWORK="base-mainnet"
+          fi
+
+          # Convert days to seconds for grace period
+          GRACE_PERIOD_SECONDS=$((86400 * ${{ github.event.inputs.grace_period }}))
+          export GRACE_PERIOD="${GRACE_PERIOD_SECONDS}"
+          export MAX_RETRIES="${{ github.event.inputs.max_retries }}"
+
+          echo "=========================================="
+          echo "Upgrading SubBase to ${{ github.event.inputs.target_version }} on ${NETWORK}"
+          echo "Proxy Address: ${PROXY_ADDRESS}"
+
+          if [ "${{ github.event.inputs.target_version }}" == "v2" ]; then
+            echo "Grace Period: ${{ github.event.inputs.grace_period }} days (${GRACE_PERIOD_SECONDS} seconds)"
+            echo "Max Retries: ${{ github.event.inputs.max_retries }}"
+          fi
+          echo "=========================================="
+
+          # Run upgrade script based on target version
+          if [ "${{ github.event.inputs.target_version }}" == "v2" ]; then
+            forge script script/UpgradeToV2.s.sol:UpgradeToV2Script \
+              --rpc-url "${RPC_URL}" \
+              --broadcast \
+              --verify \
+              --etherscan-api-key "${BASESCAN_API_KEY}" \
+              -vvv
+          else
+            echo "Error: Unknown target version ${{ github.event.inputs.target_version }}"
+            exit 1
+          fi
+
+          echo ""
+          echo "=========================================="
+          echo "Upgrade completed successfully!"
+          echo "=========================================="

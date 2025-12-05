@@ -14,9 +14,9 @@ contract SubBaseV1 is
     PlanModule,
     SubscriptionModule
 {
-    address private _owner;
+    address internal _owner;
 
-    modifier onlyOwner() {
+    modifier onlyOwner() virtual {
         if (msg.sender != _owner) revert Unauthorized();
         _;
     }
