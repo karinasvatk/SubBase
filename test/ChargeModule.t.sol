@@ -4,6 +4,7 @@ pragma solidity ^0.8.28;
 import "forge-std/Test.sol";
 import "../src/SubBaseV2.sol";
 import "../src/types/SubBaseTypes.sol";
+import "../src/errors/SubBaseErrors.sol";
 import "../src/mocks/MockUSDC.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
@@ -91,7 +92,7 @@ contract ChargeModuleTest is Test {
 
     function testCharge_NotDueYet() public {
         // Try to charge before billing time
-        vm.expectRevert(SubBaseV2.NotDueForCharge.selector);
+        vm.expectRevert(bytes4(keccak256("NotDueForCharge()")));
         subbase.charge(subId);
     }
 
@@ -243,7 +244,7 @@ contract ChargeModuleTest is Test {
         assertEq(uint(sub.status), uint(SubBaseTypes.SubscriptionStatus.Suspended));
 
         // 4th retry should revert
-        vm.expectRevert(SubBaseV2.SubscriptionNotActive.selector);
+        vm.expectRevert(bytes4(keccak256("SubscriptionNotActive()")));
         subbase.retryCharge(subId);
     }
 
@@ -323,7 +324,7 @@ contract ChargeModuleTest is Test {
     }
 
     function testSetGracePeriod_ZeroReverts() public {
-        vm.expectRevert(SubBaseV2.InvalidGracePeriod.selector);
+        vm.expectRevert(bytes4(keccak256("InvalidGracePeriod()")));
         subbase.setGracePeriod(0);
     }
 
@@ -334,7 +335,7 @@ contract ChargeModuleTest is Test {
     }
 
     function testSetMaxRetryAttempts_ZeroReverts() public {
-        vm.expectRevert(SubBaseV2.InvalidMaxRetryAttempts.selector);
+        vm.expectRevert(bytes4(keccak256("InvalidMaxRetryAttempts()")));
         subbase.setMaxRetryAttempts(0);
     }
 
