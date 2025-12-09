@@ -108,8 +108,7 @@ contract StateTransitionsTest is Test {
     function testTransition_ActiveToPastDue() public {
         vm.warp(block.timestamp + 30 days);
 
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         vm.expectEmit(true, false, false, false);
         emit SubscriptionPastDue(subId, block.timestamp + 7 days);
@@ -125,8 +124,7 @@ contract StateTransitionsTest is Test {
 
     function testTransition_PastDueToActive() public {
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
         subbase.charge(subId);
 
         SubBaseTypes.Subscription memory subPastDue = subbase.getSubscription(subId);
@@ -144,8 +142,7 @@ contract StateTransitionsTest is Test {
 
     function testTransition_PastDueToCancelled() public {
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
         subbase.charge(subId);
 
         SubBaseTypes.Subscription memory subPastDue = subbase.getSubscription(subId);
@@ -160,8 +157,7 @@ contract StateTransitionsTest is Test {
 
     function testTransition_PastDueToSuspended() public {
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         subbase.charge(subId);
         subbase.retryCharge(subId);
@@ -177,8 +173,7 @@ contract StateTransitionsTest is Test {
 
     function testTransition_SuspendedCannotBeCharged() public {
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         subbase.charge(subId);
         subbase.retryCharge(subId);
@@ -194,8 +189,7 @@ contract StateTransitionsTest is Test {
 
     function testTransition_SuspendedToActive() public {
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         subbase.charge(subId);
         subbase.retryCharge(subId);
@@ -220,8 +214,7 @@ contract StateTransitionsTest is Test {
 
     function testTransition_SuspendedToCancelled() public {
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         subbase.charge(subId);
         subbase.retryCharge(subId);
@@ -247,8 +240,7 @@ contract StateTransitionsTest is Test {
 
     function testTransition_PastDueCannotBeReactivated() public {
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
         subbase.charge(subId);
 
         SubBaseTypes.Subscription memory sub = subbase.getSubscription(subId);
@@ -272,8 +264,7 @@ contract StateTransitionsTest is Test {
         assertEq(uint(sub1.status), uint(SubBaseTypes.SubscriptionStatus.Active));
 
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         subbase.charge(subId);
         SubBaseTypes.Subscription memory sub2 = subbase.getSubscription(subId);

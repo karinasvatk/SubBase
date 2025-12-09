@@ -60,8 +60,7 @@ contract GracePeriodEdgeCasesTest is Test {
 
     function testGracePeriod_SetOnFirstFailure() public {
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         uint256 failureTime = block.timestamp;
         subbase.charge(subId);
@@ -74,8 +73,7 @@ contract GracePeriodEdgeCasesTest is Test {
 
     function testGracePeriod_ExactExpiration() public {
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         subbase.charge(subId);
         uint256 gracePeriodEnd = subbase.getGracePeriodEnd(subId);
@@ -88,8 +86,7 @@ contract GracePeriodEdgeCasesTest is Test {
 
     function testGracePeriod_OneSecondBeforeExpiration() public {
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         subbase.charge(subId);
         uint256 gracePeriodEnd = subbase.getGracePeriodEnd(subId);
@@ -102,8 +99,7 @@ contract GracePeriodEdgeCasesTest is Test {
 
     function testGracePeriod_OneSecondAfterExpiration() public {
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         subbase.charge(subId);
         uint256 gracePeriodEnd = subbase.getGracePeriodEnd(subId);
@@ -116,8 +112,7 @@ contract GracePeriodEdgeCasesTest is Test {
 
     function testGracePeriod_MultipleFailuresDuringGracePeriod() public {
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         uint256 firstFailureTime = block.timestamp;
         subbase.charge(subId);
@@ -137,8 +132,7 @@ contract GracePeriodEdgeCasesTest is Test {
 
     function testGracePeriod_ClearedOnSuccessfulCharge() public {
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         subbase.charge(subId);
         assertGt(subbase.getGracePeriodEnd(subId), 0);
@@ -153,8 +147,7 @@ contract GracePeriodEdgeCasesTest is Test {
 
     function testGracePeriod_ClearedOnReactivation() public {
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         subbase.charge(subId);
         subbase.retryCharge(subId);
@@ -181,8 +174,7 @@ contract GracePeriodEdgeCasesTest is Test {
         assertEq(subbase.getGracePeriod(), 14 days);
 
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         uint256 failureTime = block.timestamp;
         subbase.charge(subId);
@@ -192,8 +184,7 @@ contract GracePeriodEdgeCasesTest is Test {
 
     function testGracePeriod_ExistingSubscriptionsNotAffectedByConfigChange() public {
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         uint256 failureTime = block.timestamp;
         subbase.charge(subId);
@@ -207,8 +198,7 @@ contract GracePeriodEdgeCasesTest is Test {
 
     function testGracePeriod_RetryWithinGracePeriod() public {
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         subbase.charge(subId);
         uint256 gracePeriodEnd = subbase.getGracePeriodEnd(subId);
@@ -224,8 +214,7 @@ contract GracePeriodEdgeCasesTest is Test {
 
     function testGracePeriod_MaxRetriesReachedBeforeExpiration() public {
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         uint256 failureTime = block.timestamp;
         subbase.charge(subId);
@@ -246,8 +235,7 @@ contract GracePeriodEdgeCasesTest is Test {
 
     function testGracePeriod_SuccessfulRetryResetsGracePeriod() public {
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         subbase.charge(subId);
         assertEq(subbase.getFailedAttempts(subId), 1);
@@ -268,8 +256,7 @@ contract GracePeriodEdgeCasesTest is Test {
         subbase.setGracePeriod(1);
 
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         uint256 failureTime = block.timestamp;
         subbase.charge(subId);
@@ -281,8 +268,7 @@ contract GracePeriodEdgeCasesTest is Test {
         subbase.setGracePeriod(365 days);
 
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         uint256 failureTime = block.timestamp;
         subbase.charge(subId);

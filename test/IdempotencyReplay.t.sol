@@ -116,8 +116,8 @@ contract IdempotencyReplayTest is Test {
         vm.prank(subscriber2);
         uint256 subId2 = subbase.subscribe(planId);
 
-        assertEq(subId1, 0);
-        assertEq(subId2, 1);
+        assertEq(subId1, 1);
+        assertEq(subId2, 2);
 
         SubBaseTypes.Subscription memory sub1 = subbase.getSubscription(subId1);
         SubBaseTypes.Subscription memory sub2 = subbase.getSubscription(subId2);
@@ -135,8 +135,8 @@ contract IdempotencyReplayTest is Test {
         vm.prank(subscriber);
         uint256 subId2 = subbase.subscribe(planId);
 
-        assertEq(subId1, 0);
-        assertEq(subId2, 1);
+        assertEq(subId1, 1);
+        assertEq(subId2, 2);
 
         SubBaseTypes.Subscription memory sub1 = subbase.getSubscription(subId1);
         SubBaseTypes.Subscription memory sub2 = subbase.getSubscription(subId2);
@@ -193,8 +193,7 @@ contract IdempotencyReplayTest is Test {
 
     function testReplay_CannotRetrySuspendedSubscription() public {
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         subbase.charge(subId);
         subbase.retryCharge(subId);
@@ -209,8 +208,7 @@ contract IdempotencyReplayTest is Test {
 
     function testReplay_CannotRetryCancelledSubscription() public {
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         subbase.charge(subId);
 
@@ -226,8 +224,7 @@ contract IdempotencyReplayTest is Test {
 
     function testReplay_MaxRetryEnforced() public {
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         subbase.charge(subId);
         assertEq(subbase.getFailedAttempts(subId), 1);
@@ -265,8 +262,7 @@ contract IdempotencyReplayTest is Test {
 
     function testIdempotency_FailedAttemptsPersistAcrossRetries() public {
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         subbase.charge(subId);
         assertEq(subbase.getFailedAttempts(subId), 1);
