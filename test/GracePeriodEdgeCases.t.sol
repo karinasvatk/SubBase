@@ -5,6 +5,7 @@ import "forge-std/Test.sol";
 import "../src/SubBaseV2.sol";
 import "../src/SubBaseV1.sol";
 import "../src/types/SubBaseTypes.sol";
+import "../src/errors/SubBaseErrors.sol";
 import "../src/mocks/MockUSDC.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 

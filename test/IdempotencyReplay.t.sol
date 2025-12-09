@@ -5,6 +5,7 @@ import "forge-std/Test.sol";
 import "../src/SubBaseV2.sol";
 import "../src/SubBaseV1.sol";
 import "../src/types/SubBaseTypes.sol";
+import "../src/errors/SubBaseErrors.sol";
 import "../src/mocks/MockUSDC.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
@@ -66,7 +67,7 @@ contract IdempotencyReplayTest is Test {
         assertEq(usdc.balanceOf(creator), creatorBalanceBefore + 10e6);
 
         uint256 creatorBalanceAfter = usdc.balanceOf(creator);
-        vm.expectRevert(SubBaseV2.NotDueForCharge.selector);
+        vm.expectRevert(bytes4(keccak256("NotDueForCharge()")));
         subbase.charge(subId);
 
         assertEq(usdc.balanceOf(creator), creatorBalanceAfter);
@@ -80,7 +81,7 @@ contract IdempotencyReplayTest is Test {
         SubBaseTypes.Subscription memory sub = subbase.getSubscription(subId);
         assertEq(sub.nextBillingTime, block.timestamp + 30 days);
 
-        vm.expectRevert(SubBaseV2.NotDueForCharge.selector);
+        vm.expectRevert(bytes4(keccak256("NotDueForCharge()")));
         subbase.charge(subId);
     }
 
@@ -186,7 +187,7 @@ contract IdempotencyReplayTest is Test {
         SubBaseTypes.Subscription memory sub = subbase.getSubscription(subId);
         assertEq(uint(sub.status), uint(SubBaseTypes.SubscriptionStatus.Active));
 
-        vm.expectRevert(SubBaseV2.SubscriptionNotActive.selector);
+        vm.expectRevert(bytes4(keccak256("SubscriptionNotActive()")));
         subbase.retryCharge(subId);
     }
 
@@ -202,7 +203,7 @@ contract IdempotencyReplayTest is Test {
         SubBaseTypes.Subscription memory sub = subbase.getSubscription(subId);
         assertEq(uint(sub.status), uint(SubBaseTypes.SubscriptionStatus.Suspended));
 
-        vm.expectRevert(SubBaseV2.SubscriptionNotActive.selector);
+        vm.expectRevert(bytes4(keccak256("SubscriptionNotActive()")));
         subbase.retryCharge(subId);
     }
 
@@ -219,7 +220,7 @@ contract IdempotencyReplayTest is Test {
         SubBaseTypes.Subscription memory sub = subbase.getSubscription(subId);
         assertEq(uint(sub.status), uint(SubBaseTypes.SubscriptionStatus.Cancelled));
 
-        vm.expectRevert(SubBaseV2.SubscriptionNotActive.selector);
+        vm.expectRevert(bytes4(keccak256("SubscriptionNotActive()")));
         subbase.retryCharge(subId);
     }
 
@@ -240,7 +241,7 @@ contract IdempotencyReplayTest is Test {
         SubBaseTypes.Subscription memory sub = subbase.getSubscription(subId);
         assertEq(uint(sub.status), uint(SubBaseTypes.SubscriptionStatus.Suspended));
 
-        vm.expectRevert(SubBaseV2.SubscriptionNotActive.selector);
+        vm.expectRevert(bytes4(keccak256("SubscriptionNotActive()")));
         subbase.retryCharge(subId);
     }
 
@@ -252,7 +253,7 @@ contract IdempotencyReplayTest is Test {
             vm.warp(block.timestamp + 1 days);
 
             if (block.timestamp < nextBilling) {
-                vm.expectRevert(SubBaseV2.NotDueForCharge.selector);
+                vm.expectRevert(bytes4(keccak256("NotDueForCharge()")));
                 subbase.charge(subId);
             }
         }

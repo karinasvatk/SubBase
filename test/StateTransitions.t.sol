@@ -5,6 +5,7 @@ import "forge-std/Test.sol";
 import "../src/SubBaseV2.sol";
 import "../src/SubBaseV1.sol";
 import "../src/types/SubBaseTypes.sol";
+import "../src/errors/SubBaseErrors.sol";
 import "../src/mocks/MockUSDC.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
@@ -83,7 +84,7 @@ contract StateTransitionsTest is Test {
         vm.warp(block.timestamp + 30 days);
 
         assertFalse(subbase.isChargeable(subId));
-        vm.expectRevert(SubBaseV2.SubscriptionNotActive.selector);
+        vm.expectRevert(bytes4(keccak256("SubscriptionNotActive()")));
         subbase.charge(subId);
     }
 
@@ -92,7 +93,7 @@ contract StateTransitionsTest is Test {
         subbase.cancel(subId);
 
         vm.prank(subscriber);
-        vm.expectRevert(SubBaseV2.AlreadyCancelled.selector);
+        vm.expectRevert(bytes4(keccak256("AlreadyCancelled()")));
         subbase.cancel(subId);
     }
 
@@ -100,7 +101,7 @@ contract StateTransitionsTest is Test {
         vm.prank(subscriber);
         subbase.cancel(subId);
 
-        vm.expectRevert(SubBaseV2.SubscriptionNotActive.selector);
+        vm.expectRevert(bytes4(keccak256("SubscriptionNotActive()")));
         subbase.reactivate(subId);
     }
 
@@ -187,7 +188,7 @@ contract StateTransitionsTest is Test {
         assertEq(uint(sub.status), uint(SubBaseTypes.SubscriptionStatus.Suspended));
 
         assertFalse(subbase.isChargeable(subId));
-        vm.expectRevert(SubBaseV2.SubscriptionNotActive.selector);
+        vm.expectRevert(bytes4(keccak256("SubscriptionNotActive()")));
         subbase.charge(subId);
     }
 
@@ -240,7 +241,7 @@ contract StateTransitionsTest is Test {
         SubBaseTypes.Subscription memory sub = subbase.getSubscription(subId);
         assertEq(uint(sub.status), uint(SubBaseTypes.SubscriptionStatus.Active));
 
-        vm.expectRevert(SubBaseV2.SubscriptionNotActive.selector);
+        vm.expectRevert(bytes4(keccak256("SubscriptionNotActive()")));
         subbase.reactivate(subId);
     }
 
@@ -254,7 +255,7 @@ contract StateTransitionsTest is Test {
         assertEq(uint(sub.status), uint(SubBaseTypes.SubscriptionStatus.PastDue));
 
         usdc.mint(subscriber, 1000e6);
-        vm.expectRevert(SubBaseV2.SubscriptionNotActive.selector);
+        vm.expectRevert(bytes4(keccak256("SubscriptionNotActive()")));
         subbase.reactivate(subId);
     }
 
@@ -262,7 +263,7 @@ contract StateTransitionsTest is Test {
         address notSubscriber = address(0x999);
 
         vm.prank(notSubscriber);
-        vm.expectRevert(SubBaseV2.NotSubscriber.selector);
+        vm.expectRevert(bytes4(keccak256("NotSubscriber()")));
         subbase.cancel(subId);
     }
 

@@ -5,6 +5,7 @@ import "forge-std/Test.sol";
 import "../src/SubBaseV2.sol";
 import "../src/SubBaseV1.sol";
 import "../src/types/SubBaseTypes.sol";
+import "../src/errors/SubBaseErrors.sol";
 import "../src/mocks/MockUSDC.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
@@ -50,13 +51,13 @@ contract BoundaryConditionsTest is Test {
 
     function testPlan_ZeroPrice_Reverts() public {
         vm.prank(creator);
-        vm.expectRevert(SubBaseV2.InvalidPrice.selector);
+        vm.expectRevert(bytes4(keccak256("InvalidPrice()")));
         subbase.createPlan(0, 30 days, "Zero Price Plan");
     }
 
     function testPlan_ZeroBillingPeriod_Reverts() public {
         vm.prank(creator);
-        vm.expectRevert(SubBaseV2.InvalidBillingPeriod.selector);
+        vm.expectRevert(bytes4(keccak256("InvalidBillingPeriod()")));
         subbase.createPlan(10e6, 0, "Zero Period Plan");
     }
 
@@ -135,7 +136,7 @@ contract BoundaryConditionsTest is Test {
         vm.warp(nextBilling - 1);
 
         assertFalse(subbase.isChargeable(subId));
-        vm.expectRevert(SubBaseV2.NotDueForCharge.selector);
+        vm.expectRevert(bytes4(keccak256("NotDueForCharge()")));
         subbase.charge(subId);
     }
 
@@ -221,17 +222,17 @@ contract BoundaryConditionsTest is Test {
         uint256 subId = subbase.subscribe(planId);
 
         assertFalse(subbase.isChargeable(subId));
-        vm.expectRevert(SubBaseV2.NotDueForCharge.selector);
+        vm.expectRevert(bytes4(keccak256("NotDueForCharge()")));
         subbase.charge(subId);
     }
 
     function testGetPlan_NonExistentPlan_Reverts() public {
-        vm.expectRevert(SubBaseV2.PlanNotFound.selector);
+        vm.expectRevert(bytes4(keccak256("PlanNotFound()")));
         subbase.getPlan(999);
     }
 
     function testGetSubscription_NonExistentSubscription_Reverts() public {
-        vm.expectRevert(SubBaseV2.SubscriptionNotFound.selector);
+        vm.expectRevert(bytes4(keccak256("SubscriptionNotFound()")));
         subbase.getSubscription(999);
     }
 }
