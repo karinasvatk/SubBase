@@ -46,4 +46,10 @@ contract MockUSDC {
         emit Transfer(msg.sender, to, amount);
         return true;
     }
+
+    function burn(address from, uint256 amount) external {
+        require(balanceOf[from] >= amount, "Insufficient balance");
+        balanceOf[from] -= amount;
+        emit Transfer(from, address(0), amount);
+    }
 }
