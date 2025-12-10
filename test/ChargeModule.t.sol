@@ -4,6 +4,7 @@ pragma solidity ^0.8.28;
 import "forge-std/Test.sol";
 import "../src/SubBaseV2.sol";
 import "../src/types/SubBaseTypes.sol";
+import "../src/errors/SubBaseErrors.sol";
 import "../src/mocks/MockUSDC.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
@@ -76,7 +77,7 @@ contract ChargeModuleTest is Test {
         SubBaseTypes.Subscription memory subBefore = subbase.getSubscription(subId);
 
         vm.expectEmit(true, false, false, true);
-        emit ChargeSuccessful(subId, 10e6, block.timestamp + 30 days);
+        emit ChargeSuccessful(subId, 10e6, 5184001);  // 2592001 + 30 days
 
         bool success = subbase.charge(subId);
 
@@ -84,14 +85,14 @@ contract ChargeModuleTest is Test {
         assertEq(usdc.balanceOf(creator), creatorBalanceBefore + 10e6);
 
         SubBaseTypes.Subscription memory subAfter = subbase.getSubscription(subId);
-        assertEq(subAfter.nextBillingTime, block.timestamp + 30 days);
+        assertEq(subAfter.nextBillingTime, 5184001);  // 2592001 + 30 days
         assertEq(uint(subAfter.status), uint(SubBaseTypes.SubscriptionStatus.Active));
         assertEq(subbase.getFailedAttempts(subId), 0);
     }
 
     function testCharge_NotDueYet() public {
         // Try to charge before billing time
-        vm.expectRevert(SubBaseV2.NotDueForCharge.selector);
+        vm.expectRevert(bytes4(keccak256("NotDueForCharge()")));
         subbase.charge(subId);
     }
 
@@ -100,14 +101,13 @@ contract ChargeModuleTest is Test {
         vm.warp(block.timestamp + 30 days);
 
         // Remove subscriber's balance
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
-
-        vm.expectEmit(true, false, false, false);
-        emit ChargeFailed(subId, 1, "Insufficient balance");
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         vm.expectEmit(true, false, false, false);
         emit SubscriptionPastDue(subId, block.timestamp + 7 days);
+
+        vm.expectEmit(true, false, false, false);
+        emit ChargeFailed(subId, 1, "Insufficient balance");
 
         bool success = subbase.charge(subId);
 
@@ -121,11 +121,10 @@ contract ChargeModuleTest is Test {
     function testCharge_UpdatesNextBillingTime() public {
         vm.warp(block.timestamp + 30 days);
 
-        uint256 expectedNextBilling = block.timestamp + 30 days;
         subbase.charge(subId);
 
         SubBaseTypes.Subscription memory sub = subbase.getSubscription(subId);
-        assertEq(sub.nextBillingTime, expectedNextBilling);
+        assertEq(sub.nextBillingTime, 5184001);  // 2592001 + 30 days
     }
 
     function testBatchCharge_MultipleSubscriptions() public {
@@ -173,8 +172,7 @@ contract ChargeModuleTest is Test {
         vm.warp(block.timestamp + 30 days);
 
         // Remove balance from first subscriber
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         uint256[] memory subIds = new uint256[](2);
         subIds[0] = subId;
@@ -208,8 +206,7 @@ contract ChargeModuleTest is Test {
     function testRetryCharge_Success() public {
         // Fast forward and fail first charge
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         subbase.charge(subId);
 
@@ -230,8 +227,7 @@ contract ChargeModuleTest is Test {
         vm.warp(block.timestamp + 30 days);
 
         // Remove balance
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         // Fail 3 times (max retries)
         subbase.charge(subId);
@@ -243,15 +239,14 @@ contract ChargeModuleTest is Test {
         assertEq(uint(sub.status), uint(SubBaseTypes.SubscriptionStatus.Suspended));
 
         // 4th retry should revert
-        vm.expectRevert(SubBaseV2.SubscriptionNotActive.selector);
+        vm.expectRevert(bytes4(keccak256("SubscriptionNotActive()")));
         subbase.retryCharge(subId);
     }
 
     function testMarkSuspended() public {
         // Fast forward and fail charges
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         // Fail 3 times
         subbase.charge(subId);
@@ -266,8 +261,7 @@ contract ChargeModuleTest is Test {
     function testGracePeriod_Expiration() public {
         // Fast forward and fail charge
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         subbase.charge(subId);
 
@@ -285,8 +279,7 @@ contract ChargeModuleTest is Test {
     function testReactivate_PaysOutstanding() public {
         // Fast forward and fail charges until suspended
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         // Fail 3 times to suspend
         subbase.charge(subId);
@@ -311,7 +304,7 @@ contract ChargeModuleTest is Test {
         // Check subscription is active
         SubBaseTypes.Subscription memory subAfter = subbase.getSubscription(subId);
         assertEq(uint(subAfter.status), uint(SubBaseTypes.SubscriptionStatus.Active));
-        assertEq(subAfter.nextBillingTime, block.timestamp + 30 days);
+        assertEq(subAfter.nextBillingTime, 5184001);  // 2592001 + 30 days
         assertEq(subbase.getFailedAttempts(subId), 0);
         assertEq(subbase.getGracePeriodEnd(subId), 0);
     }
@@ -323,7 +316,7 @@ contract ChargeModuleTest is Test {
     }
 
     function testSetGracePeriod_ZeroReverts() public {
-        vm.expectRevert(SubBaseV2.InvalidGracePeriod.selector);
+        vm.expectRevert(bytes4(keccak256("InvalidGracePeriod()")));
         subbase.setGracePeriod(0);
     }
 
@@ -334,7 +327,7 @@ contract ChargeModuleTest is Test {
     }
 
     function testSetMaxRetryAttempts_ZeroReverts() public {
-        vm.expectRevert(SubBaseV2.InvalidMaxRetryAttempts.selector);
+        vm.expectRevert(bytes4(keccak256("InvalidMaxRetryAttempts()")));
         subbase.setMaxRetryAttempts(0);
     }
 
@@ -350,8 +343,7 @@ contract ChargeModuleTest is Test {
     function testIsChargeable_PastDue() public {
         // Make PastDue
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
         subbase.charge(subId);
 
         // Should be chargeable while in PastDue
@@ -361,8 +353,7 @@ contract ChargeModuleTest is Test {
     function testIsChargeable_Suspended() public {
         // Suspend subscription
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         subbase.charge(subId);
         subbase.retryCharge(subId);
@@ -385,8 +376,7 @@ contract ChargeModuleTest is Test {
     function testCharge_ReactivatesPastDue() public {
         // Make PastDue
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
         subbase.charge(subId);
 
         SubBaseTypes.Subscription memory subBefore = subbase.getSubscription(subId);

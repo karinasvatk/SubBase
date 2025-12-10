@@ -129,9 +129,9 @@ contract AutomationModuleTest is Test {
         SubBaseTypes.Subscription memory sub1 = subbase.getSubscription(1);
         SubBaseTypes.Subscription memory sub2 = subbase.getSubscription(2);
 
-        assertEq(sub0.nextBillingTime, block.timestamp + 30 days);
-        assertEq(sub1.nextBillingTime, block.timestamp + 30 days);
-        assertEq(sub2.nextBillingTime, block.timestamp + 30 days);
+        assertEq(sub0.nextBillingTime, 5184001);  // 2592001 + 30 days
+        assertEq(sub1.nextBillingTime, 5184001);
+        assertEq(sub2.nextBillingTime, 5184001);
     }
 
     function testPerformUpkeep_PartialSuccess() public {
@@ -139,8 +139,7 @@ contract AutomationModuleTest is Test {
         vm.warp(block.timestamp + 30 days);
 
         // Remove balance from one subscriber
-        vm.prank(subscriber2);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber2));
+        usdc.burn(subscriber2, usdc.balanceOf(subscriber2));
 
         (bool upkeepNeeded, bytes memory performData) = subbase.checkUpkeep("");
         assertTrue(upkeepNeeded);
@@ -193,23 +192,24 @@ contract AutomationModuleTest is Test {
 
     function testAutomationWorkflow_MultipleCycles() public {
         uint256 creatorBalanceBefore = usdc.balanceOf(creator);
+        uint256 startTime = block.timestamp;
 
         // Cycle 1: First billing
-        vm.warp(block.timestamp + 30 days);
+        vm.warp(startTime + 30 days);
         (bool upkeepNeeded1, bytes memory performData1) = subbase.checkUpkeep("");
         assertTrue(upkeepNeeded1);
         subbase.performUpkeep(performData1);
         assertEq(usdc.balanceOf(creator), creatorBalanceBefore + (10e6 * 3));
 
         // Cycle 2: Second billing
-        vm.warp(block.timestamp + 30 days);
+        vm.warp(startTime + 60 days);
         (bool upkeepNeeded2, bytes memory performData2) = subbase.checkUpkeep("");
         assertTrue(upkeepNeeded2);
         subbase.performUpkeep(performData2);
         assertEq(usdc.balanceOf(creator), creatorBalanceBefore + (10e6 * 6));
 
         // Cycle 3: Third billing
-        vm.warp(block.timestamp + 30 days);
+        vm.warp(startTime + 90 days);
         (bool upkeepNeeded3, bytes memory performData3) = subbase.checkUpkeep("");
         assertTrue(upkeepNeeded3);
         subbase.performUpkeep(performData3);
@@ -221,8 +221,7 @@ contract AutomationModuleTest is Test {
         vm.warp(block.timestamp + 30 days);
 
         // Remove balance from subscriber2 and fail charges to suspend
-        vm.prank(subscriber2);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber2));
+        usdc.burn(subscriber2, usdc.balanceOf(subscriber2));
 
         // Fail charges 3 times to suspend
         subbase.charge(1);
@@ -256,8 +255,7 @@ contract AutomationModuleTest is Test {
         vm.warp(block.timestamp + 30 days);
 
         // Remove balance from middle subscriber
-        vm.prank(subscriber2);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber2));
+        usdc.burn(subscriber2, usdc.balanceOf(subscriber2));
 
         (bool upkeepNeeded, bytes memory performData) = subbase.checkUpkeep("");
         assertTrue(upkeepNeeded);
