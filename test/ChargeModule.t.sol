@@ -75,9 +75,10 @@ contract ChargeModuleTest is Test {
 
         uint256 creatorBalanceBefore = usdc.balanceOf(creator);
         SubBaseTypes.Subscription memory subBefore = subbase.getSubscription(subId);
+        uint256 expectedNextBilling = block.timestamp + 30 days;
 
         vm.expectEmit(true, false, false, true);
-        emit ChargeSuccessful(subId, 10e6, block.timestamp + 30 days);
+        emit ChargeSuccessful(subId, 10e6, expectedNextBilling);
 
         bool success = subbase.charge(subId);
 
@@ -101,8 +102,7 @@ contract ChargeModuleTest is Test {
         vm.warp(block.timestamp + 30 days);
 
         // Remove subscriber's balance
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         vm.expectEmit(true, false, false, false);
         emit ChargeFailed(subId, 1, "Insufficient balance");
@@ -122,10 +122,10 @@ contract ChargeModuleTest is Test {
     function testCharge_UpdatesNextBillingTime() public {
         vm.warp(block.timestamp + 30 days);
 
-        uint256 expectedNextBilling = block.timestamp + 30 days;
         subbase.charge(subId);
 
         SubBaseTypes.Subscription memory sub = subbase.getSubscription(subId);
+        uint256 expectedNextBilling = block.timestamp + 30 days;
         assertEq(sub.nextBillingTime, expectedNextBilling);
     }
 
@@ -174,8 +174,7 @@ contract ChargeModuleTest is Test {
         vm.warp(block.timestamp + 30 days);
 
         // Remove balance from first subscriber
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         uint256[] memory subIds = new uint256[](2);
         subIds[0] = subId;
@@ -209,8 +208,7 @@ contract ChargeModuleTest is Test {
     function testRetryCharge_Success() public {
         // Fast forward and fail first charge
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         subbase.charge(subId);
 
@@ -231,8 +229,7 @@ contract ChargeModuleTest is Test {
         vm.warp(block.timestamp + 30 days);
 
         // Remove balance
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         // Fail 3 times (max retries)
         subbase.charge(subId);
@@ -251,8 +248,7 @@ contract ChargeModuleTest is Test {
     function testMarkSuspended() public {
         // Fast forward and fail charges
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         // Fail 3 times
         subbase.charge(subId);
@@ -267,8 +263,7 @@ contract ChargeModuleTest is Test {
     function testGracePeriod_Expiration() public {
         // Fast forward and fail charge
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         subbase.charge(subId);
 
@@ -286,8 +281,7 @@ contract ChargeModuleTest is Test {
     function testReactivate_PaysOutstanding() public {
         // Fast forward and fail charges until suspended
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         // Fail 3 times to suspend
         subbase.charge(subId);
@@ -351,8 +345,7 @@ contract ChargeModuleTest is Test {
     function testIsChargeable_PastDue() public {
         // Make PastDue
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
         subbase.charge(subId);
 
         // Should be chargeable while in PastDue
@@ -362,8 +355,7 @@ contract ChargeModuleTest is Test {
     function testIsChargeable_Suspended() public {
         // Suspend subscription
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         subbase.charge(subId);
         subbase.retryCharge(subId);
@@ -386,8 +378,7 @@ contract ChargeModuleTest is Test {
     function testCharge_ReactivatesPastDue() public {
         // Make PastDue
         vm.warp(block.timestamp + 30 days);
-        vm.prank(subscriber);
-        usdc.transfer(address(0x999), usdc.balanceOf(subscriber));
+        usdc.burn(subscriber, usdc.balanceOf(subscriber));
         subbase.charge(subId);
 
         SubBaseTypes.Subscription memory subBefore = subbase.getSubscription(subId);

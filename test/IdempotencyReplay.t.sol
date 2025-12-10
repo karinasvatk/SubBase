@@ -76,32 +76,33 @@ contract IdempotencyReplayTest is Test {
     function testIdempotency_CannotChargeImmediatelyAfterSuccessfulCharge() public {
         vm.warp(block.timestamp + 30 days);
 
+        uint256 currentTime = block.timestamp;
         subbase.charge(subId);
 
         SubBaseTypes.Subscription memory sub = subbase.getSubscription(subId);
-        assertEq(sub.nextBillingTime, block.timestamp + 30 days);
+        assertEq(sub.nextBillingTime, currentTime + 30 days);
 
         vm.expectRevert(bytes4(keccak256("NotDueForCharge()")));
         subbase.charge(subId);
     }
 
     function testIdempotency_NextBillingTimeUpdatedCorrectly() public {
-        vm.warp(block.timestamp + 30 days);
-        uint256 firstBillingTime = block.timestamp;
+        uint256 startTime = block.timestamp;
+        vm.warp(startTime + 30 days);
 
         subbase.charge(subId);
         SubBaseTypes.Subscription memory sub1 = subbase.getSubscription(subId);
-        assertEq(sub1.nextBillingTime, firstBillingTime + 30 days);
+        assertEq(sub1.nextBillingTime, startTime + 60 days);
 
-        vm.warp(firstBillingTime + 30 days);
+        vm.warp(startTime + 60 days);
         subbase.charge(subId);
         SubBaseTypes.Subscription memory sub2 = subbase.getSubscription(subId);
-        assertEq(sub2.nextBillingTime, firstBillingTime + 60 days);
+        assertEq(sub2.nextBillingTime, startTime + 90 days);
 
-        vm.warp(firstBillingTime + 60 days);
+        vm.warp(startTime + 90 days);
         subbase.charge(subId);
         SubBaseTypes.Subscription memory sub3 = subbase.getSubscription(subId);
-        assertEq(sub3.nextBillingTime, firstBillingTime + 90 days);
+        assertEq(sub3.nextBillingTime, startTime + 120 days);
     }
 
     function testIdempotency_MultipleSubscriptionsToSamePlan() public {

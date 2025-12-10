@@ -200,6 +200,7 @@ contract StateTransitionsTest is Test {
 
         usdc.mint(subscriber, 1000e6);
 
+        uint256 reactivateTime = block.timestamp;
         vm.prank(subscriber);
         vm.expectEmit(true, false, false, false);
         emit SubscriptionReactivated(subId);
@@ -207,7 +208,7 @@ contract StateTransitionsTest is Test {
 
         SubBaseTypes.Subscription memory subActive = subbase.getSubscription(subId);
         assertEq(uint(subActive.status), uint(SubBaseTypes.SubscriptionStatus.Active));
-        assertEq(subActive.nextBillingTime, block.timestamp + 30 days);
+        assertEq(subActive.nextBillingTime, reactivateTime + 30 days);
         assertEq(subbase.getFailedAttempts(subId), 0);
         assertEq(subbase.getGracePeriodEnd(subId), 0);
     }
