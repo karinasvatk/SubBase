@@ -75,10 +75,9 @@ contract ChargeModuleTest is Test {
 
         uint256 creatorBalanceBefore = usdc.balanceOf(creator);
         SubBaseTypes.Subscription memory subBefore = subbase.getSubscription(subId);
-        uint256 expectedNextBilling = block.timestamp + 30 days;
 
         vm.expectEmit(true, false, false, true);
-        emit ChargeSuccessful(subId, 10e6, expectedNextBilling);
+        emit ChargeSuccessful(subId, 10e6, 5184001);  // 2592001 + 30 days
 
         bool success = subbase.charge(subId);
 
@@ -86,7 +85,7 @@ contract ChargeModuleTest is Test {
         assertEq(usdc.balanceOf(creator), creatorBalanceBefore + 10e6);
 
         SubBaseTypes.Subscription memory subAfter = subbase.getSubscription(subId);
-        assertEq(subAfter.nextBillingTime, block.timestamp + 30 days);
+        assertEq(subAfter.nextBillingTime, 5184001);  // 2592001 + 30 days
         assertEq(uint(subAfter.status), uint(SubBaseTypes.SubscriptionStatus.Active));
         assertEq(subbase.getFailedAttempts(subId), 0);
     }
@@ -105,10 +104,10 @@ contract ChargeModuleTest is Test {
         usdc.burn(subscriber, usdc.balanceOf(subscriber));
 
         vm.expectEmit(true, false, false, false);
-        emit ChargeFailed(subId, 1, "Insufficient balance");
+        emit SubscriptionPastDue(subId, block.timestamp + 7 days);
 
         vm.expectEmit(true, false, false, false);
-        emit SubscriptionPastDue(subId, block.timestamp + 7 days);
+        emit ChargeFailed(subId, 1, "Insufficient balance");
 
         bool success = subbase.charge(subId);
 
@@ -125,8 +124,7 @@ contract ChargeModuleTest is Test {
         subbase.charge(subId);
 
         SubBaseTypes.Subscription memory sub = subbase.getSubscription(subId);
-        uint256 expectedNextBilling = block.timestamp + 30 days;
-        assertEq(sub.nextBillingTime, expectedNextBilling);
+        assertEq(sub.nextBillingTime, 5184001);  // 2592001 + 30 days
     }
 
     function testBatchCharge_MultipleSubscriptions() public {
@@ -306,7 +304,7 @@ contract ChargeModuleTest is Test {
         // Check subscription is active
         SubBaseTypes.Subscription memory subAfter = subbase.getSubscription(subId);
         assertEq(uint(subAfter.status), uint(SubBaseTypes.SubscriptionStatus.Active));
-        assertEq(subAfter.nextBillingTime, block.timestamp + 30 days);
+        assertEq(subAfter.nextBillingTime, 5184001);  // 2592001 + 30 days
         assertEq(subbase.getFailedAttempts(subId), 0);
         assertEq(subbase.getGracePeriodEnd(subId), 0);
     }

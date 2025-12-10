@@ -117,7 +117,6 @@ contract AutomationModuleTest is Test {
         assertTrue(upkeepNeeded);
 
         uint256 creatorBalanceBefore = usdc.balanceOf(creator);
-        uint256 performTime = block.timestamp;
 
         // Perform upkeep
         subbase.performUpkeep(performData);
@@ -130,9 +129,9 @@ contract AutomationModuleTest is Test {
         SubBaseTypes.Subscription memory sub1 = subbase.getSubscription(1);
         SubBaseTypes.Subscription memory sub2 = subbase.getSubscription(2);
 
-        assertEq(sub0.nextBillingTime, performTime + 30 days);
-        assertEq(sub1.nextBillingTime, performTime + 30 days);
-        assertEq(sub2.nextBillingTime, performTime + 30 days);
+        assertEq(sub0.nextBillingTime, 5184001);  // 2592001 + 30 days
+        assertEq(sub1.nextBillingTime, 5184001);
+        assertEq(sub2.nextBillingTime, 5184001);
     }
 
     function testPerformUpkeep_PartialSuccess() public {

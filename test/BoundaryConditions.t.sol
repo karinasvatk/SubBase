@@ -165,16 +165,35 @@ contract BoundaryConditionsTest is Test {
         uint256 subId = subbase.subscribe(planId);
 
         uint256 initialBalance = usdc.balanceOf(creator);
+        uint256 startTime = 1;  // Initial block.timestamp
 
-        for (uint256 i = 1; i <= 5; i++) {
-            vm.warp(block.timestamp + 7 days);
-            bool success = subbase.charge(subId);
-            assertTrue(success);
+        // Cycle 1: charge at 1 + 7 days = 604801
+        vm.warp(startTime + 7 days);
+        assertTrue(subbase.charge(subId));
+        assertEq(usdc.balanceOf(creator), initialBalance + 10e6);
 
-            SubBaseTypes.Subscription memory sub = subbase.getSubscription(subId);
-            assertEq(uint(sub.status), uint(SubBaseTypes.SubscriptionStatus.Active));
-            assertEq(usdc.balanceOf(creator), initialBalance + (10e6 * i));
-        }
+        // Cycle 2: charge at 1 + 14 days = 1209601
+        vm.warp(startTime + 14 days);
+        assertTrue(subbase.charge(subId));
+        assertEq(usdc.balanceOf(creator), initialBalance + (10e6 * 2));
+
+        // Cycle 3: charge at 1 + 21 days = 1814401
+        vm.warp(startTime + 21 days);
+        assertTrue(subbase.charge(subId));
+        assertEq(usdc.balanceOf(creator), initialBalance + (10e6 * 3));
+
+        // Cycle 4: charge at 1 + 28 days = 2419201
+        vm.warp(startTime + 28 days);
+        assertTrue(subbase.charge(subId));
+        assertEq(usdc.balanceOf(creator), initialBalance + (10e6 * 4));
+
+        // Cycle 5: charge at 1 + 35 days = 3024001
+        vm.warp(startTime + 35 days);
+        assertTrue(subbase.charge(subId));
+        assertEq(usdc.balanceOf(creator), initialBalance + (10e6 * 5));
+
+        SubBaseTypes.Subscription memory sub = subbase.getSubscription(subId);
+        assertEq(uint(sub.status), uint(SubBaseTypes.SubscriptionStatus.Active));
     }
 
     function testSubscription_ShortBillingPeriod() public {
@@ -184,8 +203,11 @@ contract BoundaryConditionsTest is Test {
         vm.prank(subscriber);
         uint256 subId = subbase.subscribe(planId);
 
+        uint256 startTime = 1;  // Initial block.timestamp
+
+        // Charge 10 times, once per minute
         for (uint256 i = 1; i <= 10; i++) {
-            vm.warp(block.timestamp + 1 minutes);
+            vm.warp(startTime + (i * 1 minutes));
             bool success = subbase.charge(subId);
             assertTrue(success);
         }
